@@ -10,7 +10,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%2314213d'/%3E%3Ctext x='16' y='21.5' font-family='Arial' font-weight='900' font-size='14' text-anchor='middle' fill='%23fcc419'%3ERM%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -40,12 +40,19 @@
   </header>
 
   <main id="obsah">
-    <!-- HERO: dvě místa propojená jedním vedením -->
+    <!-- Vedení, které prochází celou stránkou (jen dekorace) -->
+    <div class="trunk" aria-hidden="true"><div class="trunk-fill"></div></div>
+
+    <!-- HERO -->
     <section class="hero" id="top" aria-labelledby="hero-title">
       <div class="wrap hero-grid">
         <div class="hero-copy">
-          <h1 id="hero-title">Elektrikář pro Říčany a&nbsp;Mnichovice</h1>
-          <p class="lead">Elektroinstalace a rozvody, připojování elektrických zařízení a&nbsp;jejich údržba. Volejte a&nbsp;domluvíme termín.</p>
+          <h1 id="hero-title">
+            <span class="h1-line">Elektrikář</span>
+            <span class="h1-line">pro Říčany</span>
+            <span class="h1-line">a&nbsp;Mnichovice</span>
+          </h1>
+          <p class="lead">Elektroinstalace a&nbsp;rozvody, připojování elektrických zařízení a&nbsp;jejich údržba. Volejte a&nbsp;domluvíme termín.</p>
           <div class="hero-cta">
             <a class="btn btn-primary btn-lg" id="hero-call" href="tel:+420775379061">
               <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>
@@ -55,46 +62,54 @@
           </div>
         </div>
 
-        <figure class="schema" aria-label="Schéma: dvě adresy, Říčany a Mnichovice – Božkov, propojené jedním vedením">
-          <svg viewBox="0 0 440 300" aria-hidden="true" focusable="false">
-            <path class="wire" pathLength="1" d="M70 70 H200 V230 H370"/>
-            <!-- svorky -->
-            <g class="terminal" transform="translate(70 70)"><circle r="11"/><circle class="screw" r="3.5"/></g>
-            <g class="terminal" transform="translate(370 230)"><circle r="11"/><circle class="screw" r="3.5"/></g>
-            <!-- jistič uprostřed vedení -->
-            <g class="breaker" transform="translate(200 150)">
-              <rect x="-16" y="-26" width="32" height="52" rx="2"/>
-              <rect class="lever" x="-6" y="-16" width="12" height="16" rx="1"/>
-            </g>
+        <!-- Schéma: Říčany → hlavní jistič → Mnichovice -->
+        <figure class="board">
+          <svg class="board-wires" viewBox="0 0 440 520" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <path class="w-base" d="M56 78 H220 V150 M220 370 V442 H384"/>
+            <path class="w-live" d="M56 78 H220 V150 M220 370 V442 H384"/>
           </svg>
-          <figcaption>
-            <span class="tag tag-a"><b>Říčany</b><br>Podskalí 225/27</span>
-            <span class="tag tag-b"><b>Mnichovice – Božkov</b><br>Lomená 217</span>
-          </figcaption>
+          <span class="term term-a" aria-hidden="true"></span>
+          <span class="term term-b" aria-hidden="true"></span>
+          <figcaption class="tag tag-a"><b>Říčany</b><span>Podskalí 225/27</span></figcaption>
+
+          <div class="breaker">
+            <span class="breaker-mark" aria-hidden="true">RM</span>
+            <span class="breaker-window" aria-hidden="true"><span class="w-on">I</span><span class="w-off">O</span></span>
+            <button class="lever" id="main-switch" type="button" role="switch" aria-checked="false">
+              <span class="sr-only">Hlavní jistič stránky</span>
+              <span class="lever-handle" aria-hidden="true"></span>
+            </button>
+            <span class="breaker-label" aria-hidden="true">hlavní</span>
+          </div>
+
+          <p class="tag tag-b"><b>Mnichovice – Božkov</b><span>Lomená 217</span></p>
+          <p class="board-hint" id="board-hint" aria-live="polite">Jistič můžete shodit a&nbsp;znovu nahodit.</p>
         </figure>
       </div>
     </section>
 
     <!-- SLUŽBY jako rozvaděč -->
-    <section class="section" id="sluzby" aria-labelledby="sluzby-title">
+    <section class="section" id="sluzby" aria-labelledby="sluzby-title" data-node>
       <div class="wrap">
         <div class="section-head">
           <h2 id="sluzby-title">Co pro vás udělám</h2>
           <p>Tři okruhy práce. U&nbsp;každého můžete rovnou poslat poptávku.</p>
         </div>
 
-        <div class="panel" role="list">
-          <article class="module" role="listitem">
+        <div class="panel">
+          <article class="module" data-service="Elektroinstalace a rozvody">
             <div class="module-top" aria-hidden="true">
+              <span class="mini"><span class="mini-lever"></span></span>
               <span class="module-code">Q1</span>
-              <svg class="module-ico" viewBox="0 0 48 48"><path d="M3 30c7 0 7-14 14-14s7 14 14 14h6" /><rect x="37" y="24" width="8" height="12" rx="1" class="fill"/><circle cx="4" cy="30" r="2.5" class="fill"/></svg>
+              <svg class="module-ico" viewBox="0 0 48 48"><path d="M3 30c7 0 7-14 14-14s7 14 14 14h6"/><rect x="37" y="24" width="8" height="12" rx="1" class="fill"/><circle cx="4" cy="30" r="2.5" class="fill"/></svg>
             </div>
             <h3>Elektroinstalace a&nbsp;rozvody</h3>
             <p>Vedení a&nbsp;rozvody elektřiny. Rozsah práce domluvíme podle vaší situace.</p>
             <a class="module-link" href="#poptavka" data-preselect="Elektroinstalace a rozvody">Poptat elektroinstalaci&nbsp;→</a>
           </article>
-          <article class="module" role="listitem">
+          <article class="module" data-service="Připojování elektrických zařízení">
             <div class="module-top" aria-hidden="true">
+              <span class="mini"><span class="mini-lever"></span></span>
               <span class="module-code">Q2</span>
               <svg class="module-ico" viewBox="0 0 48 48"><rect x="7" y="7" width="34" height="34" rx="3"/><circle cx="24" cy="24" r="10"/><circle cx="20" cy="24" r="1.8" class="fill"/><circle cx="28" cy="24" r="1.8" class="fill"/></svg>
             </div>
@@ -102,8 +117,9 @@
             <p>Připojení elektrických zařízení k&nbsp;instalaci.</p>
             <a class="module-link" href="#poptavka" data-preselect="Připojování elektrických zařízení">Poptat připojení&nbsp;→</a>
           </article>
-          <article class="module" role="listitem">
+          <article class="module" data-service="Údržba elektrických zařízení">
             <div class="module-top" aria-hidden="true">
+              <span class="mini"><span class="mini-lever"></span></span>
               <span class="module-code">Q3</span>
               <svg class="module-ico" viewBox="0 0 48 48"><path d="M24 5a13 13 0 0 0-7 24v5h14v-5a13 13 0 0 0-7-24z"/><path d="M18 39h12M20 44h8"/></svg>
             </div>
@@ -115,8 +131,8 @@
       </div>
     </section>
 
-    <!-- POSTUP jako vedení se třemi svorkami -->
-    <section class="section section-alt" id="postup" aria-labelledby="postup-title">
+    <!-- POSTUP -->
+    <section class="section section-alt" id="postup" aria-labelledby="postup-title" data-node>
       <div class="wrap">
         <div class="section-head">
           <h2 id="postup-title">Jak to probíhá</h2>
@@ -142,7 +158,7 @@
     </section>
 
     <!-- POPTÁVKA + živý zakázkový list -->
-    <section class="section" id="poptavka" aria-labelledby="poptavka-title">
+    <section class="section" id="poptavka" aria-labelledby="poptavka-title" data-node>
       <div class="wrap">
         <div class="section-head">
           <h2 id="poptavka-title">Nezávazná poptávka</h2>
@@ -214,7 +230,7 @@
                 <div><dt>Práce</dt><dd data-slip="typ">Elektroinstalace a rozvody</dd></div>
                 <div><dt>Místo</dt><dd data-slip="misto">Říčany</dd></div>
                 <div class="slip-note"><dt>Popis</dt><dd data-slip="popis">&nbsp;</dd></div>
-                <div><dt>Termín</dt><dd class="slip-fixed">domluvíme telefonicky</dd></div>
+                <div><dt>Termín</dt><dd>domluvíme telefonicky</dd></div>
               </dl>
               <p class="slip-foot">IČO 44723822</p>
               <p class="slip-stamp" id="slip-stamp" hidden>Ukázka – neodesláno</p>
@@ -224,29 +240,35 @@
       </div>
     </section>
 
-    <!-- KONTAKT -->
-    <section class="section section-dark" id="kontakt" aria-labelledby="kontakt-title">
-      <div class="wrap contact">
-        <div class="contact-main">
-          <h2 id="kontakt-title">Kontakt</h2>
-          <p class="contact-hours">Volejte a&nbsp;domluvíme termín.</p>
-          <a class="big-phone" href="tel:+420775379061">775&nbsp;379&nbsp;061</a>
-          <ul class="contact-list">
-            <li><span>Pevná linka</span><a href="tel:+420323601522">323&nbsp;601&nbsp;522</a></li>
-            <li><span>E-mail</span><a href="mailto:rmelektro@seznam.cz">rmelektro@seznam.cz</a></li>
-            <li><span>IČO</span>44723822</li>
-          </ul>
-        </div>
-        <div class="contact-places">
-          <div class="place">
+    <!-- KONTAKT jako typový štítek -->
+    <section class="section section-dark" id="kontakt" aria-labelledby="kontakt-title" data-node>
+      <div class="wrap">
+        <h2 id="kontakt-title" class="contact-title">Kontakt</h2>
+        <p class="contact-hours">Volejte a&nbsp;domluvíme termín.</p>
+        <a class="giant-phone" href="tel:+420775379061"><span class="sr-only">Zavolat na </span>775&nbsp;379&nbsp;061</a>
+
+        <div class="plate">
+          <div class="plate-cell">
+            <h3>Pevná linka</h3>
+            <p><a href="tel:+420323601522">323&nbsp;601&nbsp;522</a></p>
+          </div>
+          <div class="plate-cell">
+            <h3>E-mail</h3>
+            <p><a href="mailto:rmelektro@seznam.cz">rmelektro@seznam.cz</a></p>
+          </div>
+          <div class="plate-cell">
             <h3>Říčany</h3>
             <address>Podskalí 225/27<br>251&nbsp;01 Říčany</address>
-            <a class="map-link" href="https://mapy.com/fnc/v1/search?query=Podskal%C3%AD%20225%2F27%2C%20251%2001%20%C5%98%C3%AD%C4%8Dany" target="_blank" rel="noopener">Otevřít na Mapy.com<span class="sr-only"> – Říčany (nové okno)</span>&nbsp;↗</a>
+            <a class="map-link" href="https://mapy.com/fnc/v1/search?query=Podskal%C3%AD%20225%2F27%2C%20251%2001%20%C5%98%C3%AD%C4%8Dany" target="_blank" rel="noopener">Mapy.com<span class="sr-only"> – Říčany (nové okno)</span>&nbsp;↗</a>
           </div>
-          <div class="place">
+          <div class="plate-cell">
             <h3>Mnichovice – Božkov</h3>
             <address>Lomená 217<br>251&nbsp;64 Mnichovice – Božkov</address>
-            <a class="map-link" href="https://mapy.com/fnc/v1/search?query=Lomen%C3%A1%20217%2C%20251%2064%20Mnichovice" target="_blank" rel="noopener">Otevřít na Mapy.com<span class="sr-only"> – Mnichovice (nové okno)</span>&nbsp;↗</a>
+            <a class="map-link" href="https://mapy.com/fnc/v1/search?query=Lomen%C3%A1%20217%2C%20251%2064%20Mnichovice" target="_blank" rel="noopener">Mapy.com<span class="sr-only"> – Mnichovice (nové okno)</span>&nbsp;↗</a>
+          </div>
+          <div class="plate-cell plate-ico">
+            <h3>IČO</h3>
+            <p>44723822</p>
           </div>
         </div>
       </div>

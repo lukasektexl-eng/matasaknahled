@@ -6,8 +6,66 @@
 
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* Jemné objevení sekcí */
-  var revealEls = document.querySelectorAll('.section-head, .panel, .line-steps, .order, .contact');
+  /* ---------- Hlavní jistič ---------- */
+  var sw = document.getElementById('main-switch');
+  var hint = document.getElementById('board-hint');
+  function setPower(on, announce) {
+    root.classList.toggle('power-on', on);
+    sw.setAttribute('aria-checked', on ? 'true' : 'false');
+    if (announce) hint.textContent = on ? 'Nahozeno – vedení je pod proudem.' : 'Vypnuto. Nahoďte jistič páčkou nahoru.';
+  }
+  sw.addEventListener('click', function () { setPower(!root.classList.contains('power-on'), true); });
+  // úvodní „cvak“: stránka se po načtení sama nahodí
+  if (reduce) setPower(true, false);
+  else setTimeout(function () { setPower(true, false); }, 650);
+
+  /* ---------- Vedení přes celou stránku ---------- */
+  var trunk = document.querySelector('.trunk');
+  var main = document.getElementById('obsah');
+  var hero = document.querySelector('.hero');
+  var nodes = [];
+  function layoutTrunk() {
+    if (!trunk || getComputedStyle(trunk).display === 'none') return false;
+    var top = hero.offsetHeight;
+    trunk.style.setProperty('--trunk-top', top + 'px');
+    nodes.forEach(function (n) { n.el.remove(); });
+    nodes = [];
+    var tTop = trunk.getBoundingClientRect().top;
+    document.querySelectorAll('[data-node]').forEach(function (sec) {
+      var h = sec.querySelector('h2');
+      var r = h.getBoundingClientRect();
+      var y = r.top + r.height / 2 - tTop;
+      var el = document.createElement('span');
+      el.className = 'trunk-node' + (sec.classList.contains('section-dark') ? ' on-dark' : '');
+      el.style.top = y + 'px';
+      trunk.appendChild(el);
+      nodes.push({ el: el, y: y });
+    });
+    return true;
+  }
+  function updateTrunk() {
+    if (!nodes.length) return;
+    var rect = trunk.getBoundingClientRect();
+    var reach = reduce ? rect.height : (window.innerHeight * 0.55 - rect.top);
+    var f = Math.max(0, Math.min(1, reach / rect.height));
+    trunk.style.setProperty('--fill', f.toFixed(4));
+    nodes.forEach(function (n) { n.el.classList.toggle('lit', n.y <= reach); });
+  }
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () { ticking = false; updateTrunk(); });
+  }
+  function relayout() { if (layoutTrunk()) updateTrunk(); }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', relayout);
+  window.addEventListener('load', relayout);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+  relayout();
+
+  /* ---------- Jemné objevení sekcí ---------- */
+  var revealEls = document.querySelectorAll('.section-head, .panel, .line-steps, .order, .plate');
   if (!reduce && 'IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
@@ -17,18 +75,19 @@
     revealEls.forEach(function (el) { el.classList.add('reveal'); io.observe(el); });
   }
 
+  /* ---------- Poptávka ---------- */
   var form = document.getElementById('poptavka-form');
   var status = document.getElementById('form-status');
   var stamp = document.getElementById('slip-stamp');
+  var modules = document.querySelectorAll('.module[data-service]');
   if (!form) return;
 
-  /* Živý zakázkový list */
   function setSlip(key, value) {
     var dd = document.querySelector('[data-slip="' + key + '"]');
     if (!dd) return;
-    var v = (value || '').trim();
-    if (dd.textContent === (v || ' ')) return;
-    dd.textContent = v || ' ';
+    var v = (value || '').trim() || ' ';
+    if (dd.textContent === v) return;
+    dd.textContent = v;
     if (!reduce) {
       dd.classList.add('flash');
       requestAnimationFrame(function () { requestAnimationFrame(function () { dd.classList.remove('flash'); }); });
@@ -42,31 +101,31 @@
     setSlip('typ', typ ? typ.value : '');
     setSlip('misto', misto ? misto.value : '');
     setSlip('popis', form.popis.value);
+    // jistič vybrané služby v rozvaděči je nahozený
+    modules.forEach(function (m) { m.classList.toggle('on', !!typ && m.getAttribute('data-service') === typ.value); });
   }
   form.addEventListener('input', function () { syncSlip(); stamp.hidden = true; status.textContent = ''; });
   form.addEventListener('change', syncSlip);
+  syncSlip();
 
-  /* „Poptat …“ u služeb předvybere typ práce */
   document.querySelectorAll('[data-preselect]').forEach(function (link) {
     link.addEventListener('click', function () {
-      var val = link.getAttribute('data-preselect');
-      var radio = form.querySelector('input[name="typ"][value="' + val + '"]');
+      var radio = form.querySelector('input[name="typ"][value="' + link.getAttribute('data-preselect') + '"]');
       if (radio) { radio.checked = true; syncSlip(); }
       setTimeout(function () { form.jmeno.focus({ preventScroll: true }); }, reduce ? 0 : 450);
     });
   });
 
-  /* Validace */
   var rules = {
     jmeno: function (v) { return v.trim().length > 0; },
     telefon: function (v) { return v.replace(/\D/g, '').length >= 9; },
     email: function (v) { return !v.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); }
   };
+  var errIds = { jmeno: 'e-jmeno', telefon: 'e-tel', email: 'e-email' };
   function check(name) {
-    var input = form[name];
-    var ok = rules[name](input.value);
-    input.setAttribute('aria-invalid', ok ? 'false' : 'true');
-    document.getElementById('e-' + (name === 'telefon' ? 'tel' : name)).hidden = ok;
+    var ok = rules[name](form[name].value);
+    form[name].setAttribute('aria-invalid', ok ? 'false' : 'true');
+    document.getElementById(errIds[name]).hidden = ok;
     return ok;
   }
   Object.keys(rules).forEach(function (name) {
@@ -78,9 +137,7 @@
   form.addEventListener('submit', function (ev) {
     ev.preventDefault();
     var firstBad = null;
-    Object.keys(rules).forEach(function (name) {
-      if (!check(name) && !firstBad) firstBad = form[name];
-    });
+    Object.keys(rules).forEach(function (name) { if (!check(name) && !firstBad) firstBad = form[name]; });
     if (firstBad) {
       status.className = 'form-status bad';
       status.textContent = 'Zkontrolujte prosím zvýrazněná pole.';
@@ -93,12 +150,12 @@
     status.textContent = 'Ukázka: nic se neodesílá.';
   });
 
-  /* Na mobilu schovat pevné „Zavolat“, když je vidět formulář nebo kontakt */
+  /* ---------- Mobil: schovat pevné „Zavolat“, když je číslo vidět jinde ---------- */
   var bar = document.getElementById('call-bar');
   if (bar && 'IntersectionObserver' in window) {
     var visible = new Set();
     var barIo = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) { e.isIntersecting ? visible.add(e.target) : visible.delete(e.target); });
+      entries.forEach(function (e) { if (e.isIntersecting) visible.add(e.target); else visible.delete(e.target); });
       bar.classList.toggle('is-off', visible.size > 0);
     }, { threshold: 0.15 });
     ['hero-call', 'poptavka-form', 'kontakt'].forEach(function (id) {
